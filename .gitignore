@@ -1,0 +1,15 @@
+# Node
+node_modules
+.env
+uploads/
+dist
+*.log
+
+# Editor/OS files
+.DS_Store
+.vscode/
+*.suo
+*.sw?
+
+# Build artifacts
+*.local
