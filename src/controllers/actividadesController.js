@@ -195,6 +195,78 @@ const actualizarEstadoActividad = async (req, res) => {
     res.status(500).json({ message: 'Error del servidor al actualizar el estado.' });
   }
 };
+const obtenerTotalResiduosIngresados = async (req, res) => {
+  try {
+    const actividades = await Actividad.findAll({
+      attributes: ['cantidad_ingresada'],
+    });
+
+    // Convertir a número y sumar
+    const totalKilos = actividades.reduce((acumulado, actividad) => {
+      const valor = actividad.cantidad_ingresada?.split(' ')[0]; // toma "10" de "10 KILOS"
+      const kilos = parseFloat(valor);
+      return acumulado + (isNaN(kilos) ? 0 : kilos);
+    }, 0);
+
+    res.status(200).json({ total_kilos: totalKilos });
+  } catch (error) {
+    console.error('❌ Error al calcular total de residuos ingresados:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+const obtenerResiduosPorPrograma = async (req, res) => {
+  const { programaId } = req.params;
+
+  try {
+    const actividades = await Actividad.findAll({
+      include: [
+        {
+          model: Usuario,
+          as: 'usuario',
+          include: [
+            {
+              model: Estudiantes,
+              as: 'estudiante',
+              where: { programa_academico_id: programaId },
+              attributes: ['programa_academico_id']
+            }
+          ]
+        }
+      ],
+      attributes: ['cantidad_ingresada']
+    });
+
+    const totalKilos = actividades.reduce((total, actividad) => {
+      const valor = actividad.cantidad_ingresada?.split(' ')[0];
+      const kilos = parseFloat(valor);
+      return total + (isNaN(kilos) ? 0 : kilos);
+    }, 0);
+
+    res.json({ programa_id: programaId, total_kilos: totalKilos });
+  } catch (error) {
+    console.error('❌ Error al obtener residuos por programa:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
+const verificarEstadoActividad = async (req, res) => {
+  const id_usuario = req.usuario.id; // Desde el token JWT
+
+  try {
+    const actividad = await Actividad.findOne({
+      where: { id_usuario },
+      attributes: ['estado']
+    });
+
+    if (!actividad) {
+      return res.status(404).json({ message: 'Actividad no encontrada para este usuario.' });
+    }
+
+    res.status(200).json({ estado: actividad.estado });
+  } catch (error) {
+    console.error('❌ Error al verificar estado de actividad:', error);
+    res.status(500).json({ message: 'Error del servidor' });
+  }
+};
 
 
 module.exports = {
@@ -203,5 +275,8 @@ module.exports = {
   actualizarTipoResiduo,
   obtenerActividad,
   obtenerDetallesActividad,
-  actualizarEstadoActividad
+  actualizarEstadoActividad,
+  obtenerTotalResiduosIngresados,
+  obtenerResiduosPorPrograma,
+  verificarEstadoActividad
 };

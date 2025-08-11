@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 
-const { obtenerActividadesConDatosEstudiante, actualizarEstadoActividad, obtenerDetallesActividad, obtenerActividad, actualizarTipoResiduo, actualizarCantidadTotal } = require('../controllers/actividadesController');
+const {verificarEstadoActividad,  obtenerResiduosPorPrograma, obtenerTotalResiduosIngresados, obtenerActividadesConDatosEstudiante, actualizarEstadoActividad, obtenerDetallesActividad, obtenerActividad, actualizarTipoResiduo, actualizarCantidadTotal } = require('../controllers/actividadesController');
 const validarJWT = require('../middlewares/validarJWT');
 
 // Ruta protegida: obtener todas las actividades con datos de estudiante
@@ -16,5 +16,11 @@ router.get('/actividad', validarJWT, obtenerActividad);
 router.get('/actividad/detalles', validarJWT, obtenerDetallesActividad);
 
 router.put('/estado/:id_actividad', actualizarEstadoActividad);
+
+router.get('/residuos/total', obtenerTotalResiduosIngresados);
+
+router.get('/residuos/por-programa/:programaId', validarJWT, obtenerResiduosPorPrograma);
+
+router.get('/estado/verificar', validarJWT, verificarEstadoActividad);
 
 module.exports = router;
